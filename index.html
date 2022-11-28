@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geolocation</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;200;400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+      integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
+      crossorigin="anonymous"
+    />
+
+    <!-- Main styles -->
+    <style>
+      html,
+      body {
+        min-height: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        background: #8c2748;
+        background: -webkit-gradient(
+          linear,
+          right bottom,
+          left top,
+          from(#8c2748),
+          to(#f13344)
+        );
+        background: linear-gradient(to top left, #8c2748, #f13344);
+        background-repeat: no-repeat;
+        color: #f1f1f1;
+        font-family: "Noto Sans", sans-serif;
+        font-weight: 100;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+        -webkit-transition: 0.3s color ease;
+        transition: 0.3s color ease;
+      }
+
+      a:hover {
+        color: #7fc6c7;
+      }
+      /*# sourceMappingURL=styles.css.map */
+    </style>
+  </head>
+
+  <body>
+    <button class="btn btn-lg btn-light my-4">Нажми</button>
+
+    <p class="mt-4"></p>
+    <div id="map" style="width: 90%; height: 400px"></div>
+    <p class="mt-3 text-center"></p>
+
+    <script>
+      const button = document.querySelector("button");
+
+      function getLongAndLat() {
+        return new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject)
+        );
+      }
+
+      const getLocation = async () => {
+        try {
+          let position = await getLongAndLat(),
+            { coords } = position,
+            currentCoordinates = [coords.latitude, coords.longitude];
+
+          const p = document.querySelectorAll("p");
+          p[0].innerHTML = `Твои координаты: <b><a href="https://yandex.ru/maps/?text=${currentCoordinates[0]}, ${currentCoordinates[1]}" target="_blank">${currentCoordinates[0]}, ${currentCoordinates[1]}</a></b> <br> Твоя локация на карте: `;
+          p[1].innerHTML = `Теперь я знаю где ты :D`;
+          ymaps.ready(init);
+          function init() {
+            // Создание карты.
+            let myMap = new ymaps.Map("map", {
+              // Координаты центра карты.
+              // Порядок по умолчанию: «широта, долгота».
+              // Чтобы не определять координаты центра карты вручную,
+              // воспользуйтесь инструментом Определение координат.
+              center: currentCoordinates,
+              // Уровень масштабирования. Допустимые значения:
+              // от 0 (весь мир) до 19.
+              zoom: 16,
+            });
+
+            let placemark = new ymaps.Placemark(
+              currentCoordinates,
+              {
+                hintContent: "Ты тут :D",
+              },
+              {
+                // Опции.
+                // Необходимо указать данный тип макета.
+                iconLayout: "default#image",
+                // Своё изображение иконки метки.
+                iconImageHref:
+                  "https://pngicon.ru/file/uploads/geometka-128x128.png",
+                // Размеры метки.
+                iconImageSize: [40, 40],
+                // Смещение левого верхнего угла иконки относительно
+                // её "ножки" (точки привязки).
+                iconImageOffset: [-35, -35],
+              }
+            );
+            myMap.geoObjects.add(placemark);
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      };
+
+      const sendLocation = async () => {
+        let position = await getLongAndLat(),
+          { coords } = position,
+          currentCoordinates = [coords.latitude, coords.longitude];
+        let data = coords.latitude + ", " + coords.longitude;
+
+        let url = "https://webhook.site/02e1903e-aba8-4132-8287-fd2f51cb4da0";
+
+        let response = await fetch(url, {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      };
+
+      button.addEventListener("click", getLocation);
+      button.addEventListener("click", sendLocation);
+    </script>
+
+    <script
+      src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"
+      type="text/javascript"
+    ></script>
+  </body>
+</html>
